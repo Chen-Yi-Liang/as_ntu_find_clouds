@@ -5,6 +5,7 @@
 #include "image_process.h"
 #include "solar_location.h"
 #include "draw.h"
+#include "params.h"
 
 void cloud_check(unsigned char * pixel) {
 	double rb = ((double)pixel[0]) / ((double)pixel[2]);
@@ -99,7 +100,12 @@ int run_test(char * read_file, char * write_file) {
 
 int main(int argc, char * argv[]) {
 	
-	run_test("./sample/20180529235500_12.jpg", "./output/temp.png");
+	params param;
+	
+	if (params_parser(argc, argv, &param) == 0) return 0;
+	params_dump(&param);
+	
+	// run_test("./sample/20180529235500_12.jpg", "./output/temp.png");
 	/*
 	if (!readExif("./sample/20180529235500_12.jpg")) {
 		return 0;
