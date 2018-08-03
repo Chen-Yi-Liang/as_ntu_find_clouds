@@ -1,8 +1,10 @@
-#include "image_process.h"
 #include <malloc.h>
 #include <string.h>
 #include <jpeglib.h>
 #include <png.h>
+#include <math.h>
+#include "image_process.h"
+#include "find_clouds_def.h"
 
 // private functions define //
 image_data * create_image_data_with_jpg(char * file_name);
@@ -110,14 +112,6 @@ int write_image_data_with_png(image_data * data, char * file_name) {
     PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 	png_write_info(png_ptr, info_ptr);
 	
-	/*
-	for (int y = 0; y < data->height; y ++) {
-		for (int x = 0; x <data->width; x ++) {
-			data->data[(data->width * y + x) * 3] = 0xFF;
-		}
-	}
-	*/
-	
 	for (int y = 0; y < data->height; y ++) {
 	  png_write_row(png_ptr, data->data + (data->width * 3 * y));
 	}
@@ -128,3 +122,42 @@ int write_image_data_with_png(image_data * data, char * file_name) {
   if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 	return returnCode;
 }
+
+double get_x(image_data * data, double e_angle, double azimuth) {
+
+	double cx = (data->width - 1) / 2.;
+	double cy = (data->height - 1) / 2.;
+	double r_max = (cx > cy) ? cy : cx;
+	double r = (1 - (e_angle / M_PI * 2.)) * r_max;
+	return sin(- M_PI / 2. - azimuth) * r + r_max;
+}
+
+double get_y(image_data * data, double e_angle, double azimuth) {
+
+	double cx = (data->width - 1) / 2.;
+	double cy = (data->height - 1) / 2.;
+	double r_max = (cx > cy) ? cy : cx;
+	double r = (1 - (e_angle / M_PI * 2.)) * r_max;
+	return cos(- M_PI / 2. - azimuth) * r + r_max;
+}
+
+void draw_circle(image_data * data, double cx, double cy, 
+  double r1, double r2, unsigned char r, unsigned char g, unsigned char b) {
+		
+	r1 *= r1;
+	r2 *= r2;
+	for (int y = 0; y < data->height; y ++) {
+		for (int x = 0; x < data->width; x ++) {
+			double dx = x - cx;
+			double dy = y - cy;
+			double dr = dx * dx + dy * dy;
+			if (dr > r1 && dr < r2) {
+				unsigned char * p = data->data + (x + y * data->width) * 3;
+				*p = r;
+				*(p+1) = g;
+				*(p+2) = b;
+			}
+		}
+	}
+}
+

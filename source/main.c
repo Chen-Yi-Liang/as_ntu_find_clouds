@@ -1,26 +1,10 @@
 #include <stdio.h>
+#include <math.h>
+#include "find_clouds_def.h"
 #include "exif_gps.h"
 #include "image_process.h"
 #include "solar_location.h"
-#include <math.h>
-
-#ifndef PI
-#define M_PI 3.14159265358979323846
-#endif
-
-unsigned char gray_value(unsigned char * pixel) {
-	int R = pixel[0];
-	int G = pixel[1];
-	int B = pixel[2];
-	return (R*313524 + G*615514 + B*119538) >> 20;
-}
-
-void gray(unsigned char * pixel) {
-	unsigned char Gray = gray_value(pixel);
-	pixel[0] = Gray;
-	pixel[1] = Gray;
-	pixel[2] = Gray;
-}
+#include "draw.h"
 
 void cloud_check(unsigned char * pixel) {
 	double rb = ((double)pixel[0]) / ((double)pixel[2]);
@@ -54,44 +38,6 @@ int process_image_data(image_data * data) {
 			}
 		}
 	}
-}
-
-void draw_circle(image_data * data, double cx, double cy, 
-  double r1, double r2, unsigned char r, unsigned char g, unsigned char b) {
-		
-	r1 *= r1;
-	r2 *= r2;
-	for (int y = 0; y < data->height; y ++) {
-		for (int x = 0; x < data->width; x ++) {
-			double dx = x - cx;
-			double dy = y - cy;
-			double dr = dx * dx + dy * dy;
-			if (dr > r1 && dr < r2) {
-				unsigned char * p = data->data + (x + y * data->width) * 3;
-				*p = r;
-				*(p+1) = g;
-				*(p+2) = b;
-			}
-		}
-	}
-}
-
-double get_x(image_data * data, double e_angle, double azimuth) {
-
-	double cx = (data->width - 1) / 2.;
-	double cy = (data->height - 1) / 2.;
-	double r_max = (cx > cy) ? cy : cx;
-	double r = (1 - (e_angle / M_PI * 2.)) * r_max;
-	return sin(- M_PI / 2. - azimuth) * r + r_max;
-}
-
-double get_y(image_data * data, double e_angle, double azimuth) {
-
-	double cx = (data->width - 1) / 2.;
-	double cy = (data->height - 1) / 2.;
-	double r_max = (cx > cy) ? cy : cx;
-	double r = (1 - (e_angle / M_PI * 2.)) * r_max;
-	return cos(- M_PI / 2. - azimuth) * r + r_max;
 }
 
 void mark_solar(image_data * data, double solar_e_angle, double solar_azimuth,
@@ -165,4 +111,5 @@ int main(int argc, char * argv[]) {
 	*/
 	return 0;
 }
+
 

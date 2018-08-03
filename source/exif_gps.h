@@ -4,7 +4,9 @@
 #define EXIF_GPS_UNDEFINED	-999.0
 
 /**
- * return data type of exif_gps
+ * GPS的經緯度值，使用度為單位，latitude -90~90，longitude -180~180。
+ * 沒有值時回傳為 EXIF_GPS_UNDEFINED。
+ *
  */
 typedef struct {
 	double latitude;
