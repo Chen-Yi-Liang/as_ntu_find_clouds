@@ -9,6 +9,7 @@ typedef struct {
 	double rotate;
 	double region;
 	double sun_region;
+	double y_day;	// 該年的第幾天 //
 	int ignore_sun;
 	char * out_image;
 	char * input_image_file;

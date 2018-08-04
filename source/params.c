@@ -89,6 +89,11 @@ int params_parser(int argc, char * argv[], params * param) {
 		param->input_image_file = command;
 	}
 	
+	if (param->input_image_file == NULL) {
+	  fprintf(stderr, "need input file name\n");
+	  return 0;
+	}
+	
 	return 1;
 }
 
@@ -100,6 +105,7 @@ void params_default(params * param) {
 	param->latitude = EXIF_GPS_UNDEFINED;
 	param->longitude = EXIF_GPS_UNDEFINED;
 	param->sun_region = 5.0;
+	param->y_day = -1.0;
 	param->ignore_sun = 0;
 	param->out_image = NULL;
 	param->input_image_file = NULL;
@@ -113,6 +119,7 @@ void params_dump(params * param) {
 	printf("latitude %lf\n", param->latitude);
 	printf("longitude %lf\n", param->longitude);
 	printf("sun_region %lf\n", param->sun_region);
+	printf("y_day %lf\n", param->y_day);
 	printf("ignore_sun %s\n", param->ignore_sun ? "yes" : "no");
 	printf("out_image %s\n", (param->out_image != NULL) ? param->out_image : " ");
 	printf("input_image_file %s\n", (param->input_image_file != NULL) ? param->input_image_file : " ");
