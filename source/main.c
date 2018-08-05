@@ -9,7 +9,12 @@
 #include "draw.h"
 #include "params.h"
 
-void cloud_check(unsigned char * pixel, double rb, double gb) {
+/**
+ * 檢查該點座標是否為雲，並著色.
+ * 如果是雲，灰階紅色，否則灰階灰色。
+ * @return 如果是雲 => 1, 否則 => 0
+ */
+int cloud_check(unsigned char * pixel, double rb, double gb) {
 	double rbv = ((double)pixel[0]) / ((double)pixel[2]);
 	double gbv = ((double)pixel[1]) / ((double)pixel[2]);
 	unsigned char Gray = gray_value(pixel);
@@ -18,15 +23,24 @@ void cloud_check(unsigned char * pixel, double rb, double gb) {
 		pixel[0] = Gray;
 		pixel[1] = 0;
 		pixel[2] = 0;
+		return 1;
 	}
 	else {
 		pixel[0] = Gray;
 		pixel[1] = Gray;
 		pixel[2] = Gray;
 	}
+	return 0;
 }
 
-int process_image_data(image_data * data, params * param) {
+/**
+ * 處理要計算的區域並將雲標出顏色。
+ * @return 雲量的比例。
+ */
+double process_image_data(image_data * data, params * param,double solar_x,double solar_y, double solar_r) {
+	double total_cloud = 0.;	// 總雲量累計 //
+	double total_value = 0.;	// 總面積權重累計 //
+	
 	double r_rate = param->region / 90.0;
 	double cx = (data->width - 1) / 2.;
 	double cy = (data->height - 1) / 2.;
@@ -37,12 +51,28 @@ int process_image_data(image_data * data, params * param) {
 			double dx = x - cx;
 			double dy = y - cy;
 			if (dx * dx + dy * dy < r_max * r_max) {
-				cloud_check(data->data + ((x + y * data->width) * 3), param->rb, param->gb);
+				if (cloud_check(data->data + ((x + y * data->width) * 3), param->rb, param->gb)) {
+					if (solar_r > 0) {
+						double sx = x - solar_x;
+						double sy = y - solar_y;
+						if (sx * sx + sy * sy > solar_r * solar_r) {
+							total_cloud += 1.;
+						}
+					}
+					else {
+						total_cloud += 1.;
+					}
+				}
+				total_value += 1.;
 			}
 		}
 	}
+	return total_cloud / total_value;
 }
 
+/**
+ * 標示出太陽的位置。畫一個圈。
+ */
 void mark_solar(image_data * data, double solar_e_angle, double solar_azimuth,
   double r1, double r2, unsigned char r, unsigned char g, unsigned char b) {
 	printf("mark_solar at %f, %f\n", solar_e_angle * 180. / M_PI, solar_azimuth * 180. / M_PI);
@@ -50,36 +80,6 @@ void mark_solar(image_data * data, double solar_e_angle, double solar_azimuth,
   double solar_y = get_y(data, solar_e_angle, solar_azimuth);
 	draw_circle(data, solar_x, solar_y, r1, r2, r, g, b);
 }
-
-/*
-int run_test(char * read_file, char * write_file) {
-	exif_gps gps = get_exif_gps(read_file);
-	double y_day = yday(2018, 5, 29, 23, 55, 0);
-	double e_a, azimuth;
-	solar_angle(gps.latitude * M_PI / 180., gps.longitude * M_PI / 180., y_day, &e_a, &azimuth);
-	
-	printf("%f,%f\n", gps.latitude, gps.longitude);
-	printf("%f\n", y_day);
-	printf("%f\n", e_a, azimuth);
-	
-  image_data * data = create_image_data(read_file);
-	if (data == NULL) return 0;
-	process_image_data(data);
-
-	double r = (5. / 90. * data->width / 2.);
-	mark_solar(data, e_a, azimuth, r - 1, r + 1, 0, 0xFF, 0);
-	mark_solar(data, 22.32 * M_PI / 180., 70.52 * M_PI / 180., r - 1, r + 1, 0xFF, 0xFF, 0);
-	mark_solar(data, (90 - 64.2423) * M_PI / 180., 70.52 * M_PI / 180., r - 1, r + 1, 0, 0, 0xFF);
-	
-	if (!write_image_data(data, write_file)) {
-		delete_image_data(data);
-		printf("write png false\n");
-		return 0;
-	}
-	delete_image_data(data);
-  return 1;
-}
-*/
 
 int data_time_string_from_file_name(char * file_name, double * y_day) {
 	int len = strlen(file_name);
@@ -140,7 +140,7 @@ int main(int argc, char * argv[]) {
 	if (param.y_day == -1.0)
 		param.y_day = y_day;
 	
-	params_dump(&param);
+	// params_dump(&param);
 	
   image_data * data = create_image_data(param.input_image_file);
 	if (data == NULL) return 0;
@@ -157,11 +157,19 @@ int main(int argc, char * argv[]) {
 			param.y_day, &e_a, &azimuth);
 		azimuth -= (param.rotate * M_PI / 180.);
 		
-		double r = (param.sun_region / 90. * data->width / 2.);
-		mark_solar(data, e_a, azimuth, r - 1, r + 1, 0, 0xFF, 0);
+		double solar_r = (param.sun_region / 90. * data->width / 2.);
+		double solar_x = get_x(data, e_a, azimuth);
+		double solar_y = get_y(data, e_a, azimuth);
+		double cloud_rate = process_image_data(data, &param, solar_x, solar_y, solar_r);
+		mark_solar(data, e_a, azimuth, solar_r - 1, solar_r + 1, 0, 0xFF, 0);
+		fprintf(stdout, "%lf\n", cloud_rate);
+	}
+	else {
+		double cloud_rate = process_image_data(data, &param, 0, 0, 0);
+		fprintf(stdout, "%lf\n", cloud_rate);
 	}
 
-	process_image_data(data, &param);
+
 	
 	if (param.out_image != NULL) {
 		if (!write_image_data(data, param.out_image)) {
