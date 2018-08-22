@@ -41,7 +41,7 @@ double process_image_data(image_data * data, params * param,double solar_x,doubl
 	double total_cloud = 0.;	// 總雲量累計 //
 	double total_value = 0.;	// 總面積權重累計 //
 	
-	double r_rate = param->region / 90.0;
+	double r_rate = param->region / 90.0 * param->r_scale;
 	double cx = (data->width - 1) / 2.;
 	double cy = (data->height - 1) / 2.;
 	double r_max = (cx > cy) ? cy : cx;
