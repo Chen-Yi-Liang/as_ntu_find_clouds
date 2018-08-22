@@ -7,6 +7,7 @@ as_ntu_find_clouds [參數] <input_image_file>
 input_image_file : 輸入的魚眼鏡頭照片(jpg file)。
 -rotate : 照片計算時旋轉的度數(順時針旋轉)。預設：0度。
 -region : 照片計算時，取樣的範圍度數(從天頂開始計算的)。預設：60度。
+-r_scale : 鏡頭半徑的放大比例。預設：1。
 -out_image : 經過繪圖著色，輸出的照片(png file)。無設定時忽略。預設：忽略。
 -rb : 顏色R/B的比值超過多少時，視為雲。預設：0.8。
 -gb : 顏色G/B的比值超過多少時，視為雲。預設：0.8。

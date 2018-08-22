@@ -62,6 +62,13 @@ int params_parser(int argc, char * argv[], params * param) {
 			i ++;
 			continue;
 		}
+		if (strcmp("-r_scale", command) == 0) {
+			if (i + 1 >= argc) return 0;	// 參數不足 //
+			double f = atof(argv[i + 1]);
+			param->r_scale = f;
+			i ++;
+			continue;
+		}
 		if (strcmp("-sun_region", command) == 0) {
 			if (i + 1 >= argc) return 0;	// 參數不足 //
 			double f = atof(argv[i + 1]);
@@ -100,6 +107,7 @@ int params_parser(int argc, char * argv[], params * param) {
 void params_default(params * param) {
 	param->rotate = 0.0;
 	param->region = 60.0;
+  param->r_scale = 1.0;
 	param->rb = 0.8;
 	param->gb = 0.8;
 	param->latitude = EXIF_GPS_UNDEFINED;
@@ -114,6 +122,7 @@ void params_default(params * param) {
 void params_dump(params * param) {
 	printf("rotate %lf\n", param->rotate);
 	printf("region %lf\n", param->region);
+  printf("r_scale %lf\n", param->r_scale);
 	printf("rb %lf\n", param->rb);
 	printf("gb %lf\n", param->gb);
 	printf("latitude %lf\n", param->latitude);

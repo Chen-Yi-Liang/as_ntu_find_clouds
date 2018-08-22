@@ -8,6 +8,7 @@ typedef struct {
 	double longitude;
 	double rotate;
 	double region;
+  double r_scale;
 	double sun_region;
 	double y_day;	// 該年的第幾天 //
 	int ignore_sun;

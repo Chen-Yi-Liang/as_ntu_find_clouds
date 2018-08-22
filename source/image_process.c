@@ -46,8 +46,6 @@ image_data * create_image_data_with_jpg(char * file_name) {
   jpeg_stdio_src(&cinfo, ptr);
   jpeg_read_header(&cinfo, TRUE);
   
-  printf("%d*%d\n", cinfo.image_width, cinfo.image_height);
-  
 	// set decompress param //
 	cinfo.scale_num = 1;
 	cinfo.scale_denom = 1;
@@ -69,10 +67,7 @@ image_data * create_image_data_with_jpg(char * file_name) {
 		(void) jpeg_read_scanlines(&cinfo, &data_buffer, 1);
 		data_buffer += row_stride;
 	}
-	
-  // all data with R,G,B 3bytes array in output_components //
-	printf("%d*%d (%d)\n", cinfo.output_width, cinfo.output_height, cinfo.output_components);
-	
+		
   jpeg_finish_decompress(&cinfo);
   jpeg_destroy_decompress(&cinfo);
   
@@ -123,22 +118,22 @@ int write_image_data_with_png(image_data * data, char * file_name) {
 	return returnCode;
 }
 
-double get_x(image_data * data, double e_angle, double azimuth) {
+double get_x(image_data * data, double e_angle, double azimuth, double r_scale) {
 
 	double cx = (data->width - 1) / 2.;
 	double cy = (data->height - 1) / 2.;
 	double r_max = (cx > cy) ? cy : cx;
-	double r = (1 - (e_angle / M_PI * 2.)) * r_max;
-	return sin(- M_PI / 2. - azimuth) * r + r_max;
+	double r = (1 - (e_angle / M_PI * 2.)) * r_max * r_scale;
+	return cos(azimuth) * r + r_max;
 }
 
-double get_y(image_data * data, double e_angle, double azimuth) {
+double get_y(image_data * data, double e_angle, double azimuth, double r_scale) {
 
 	double cx = (data->width - 1) / 2.;
 	double cy = (data->height - 1) / 2.;
 	double r_max = (cx > cy) ? cy : cx;
-	double r = (1 - (e_angle / M_PI * 2.)) * r_max;
-	return cos(- M_PI / 2. - azimuth) * r + r_max;
+	double r = (1 - (e_angle / M_PI * 2.)) * r_max * r_scale;
+	return -sin(azimuth) * r + r_max;
 }
 
 void draw_circle(image_data * data, double cx, double cy, 

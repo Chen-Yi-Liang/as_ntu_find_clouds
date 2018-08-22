@@ -73,11 +73,10 @@ double process_image_data(image_data * data, params * param,double solar_x,doubl
 /**
  * 標示出太陽的位置。畫一個圈。
  */
-void mark_solar(image_data * data, double solar_e_angle, double solar_azimuth,
+void mark_solar(image_data * data, double solar_e_angle, double solar_azimuth, double r_scale,
   double r1, double r2, unsigned char r, unsigned char g, unsigned char b) {
-	printf("mark_solar at %f, %f\n", solar_e_angle * 180. / M_PI, solar_azimuth * 180. / M_PI);
-  double solar_x = get_x(data, solar_e_angle, solar_azimuth);
-  double solar_y = get_y(data, solar_e_angle, solar_azimuth);
+  double solar_x = get_x(data, solar_e_angle, solar_azimuth, r_scale);
+  double solar_y = get_y(data, solar_e_angle, solar_azimuth, r_scale);
 	draw_circle(data, solar_x, solar_y, r1, r2, r, g, b);
 }
 
@@ -124,7 +123,7 @@ int main(int argc, char * argv[]) {
 	// 從command line 取出參數 //
 	params param;
 	if (params_parser(argc, argv, &param) == 0) return 0;
-	
+  
 	// 讀取 gps //
 	exif_gps gps = get_exif_gps(param.input_image_file);
 	
@@ -155,13 +154,13 @@ int main(int argc, char * argv[]) {
 		  param.latitude * M_PI / 180., 
 		  param.longitude * M_PI / 180., 
 			param.y_day, &e_a, &azimuth);
-		azimuth -= (param.rotate * M_PI / 180.);
-		
+		azimuth += (param.rotate * M_PI / 180.);
+    
 		double solar_r = (param.sun_region / 90. * data->width / 2.);
-		double solar_x = get_x(data, e_a, azimuth);
-		double solar_y = get_y(data, e_a, azimuth);
+		double solar_x = get_x(data, e_a, azimuth, param.r_scale);
+		double solar_y = get_y(data, e_a, azimuth, param.r_scale);
 		double cloud_rate = process_image_data(data, &param, solar_x, solar_y, solar_r);
-		mark_solar(data, e_a, azimuth, solar_r - 1, solar_r + 1, 0, 0xFF, 0);
+		mark_solar(data, e_a, azimuth, param.r_scale, solar_r - 1, solar_r + 1, 0, 0xFF, 0);
 		fprintf(stdout, "%lf\n", cloud_rate);
 	}
 	else {
