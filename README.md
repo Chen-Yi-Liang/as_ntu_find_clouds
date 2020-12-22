@@ -1,3 +1,4 @@
+```windows console
 # as_ntu_find_clouds
 從魚眼鏡頭的照片辨識雲
 
@@ -20,3 +21,4 @@ sample:
 ./as_ntu_find_clouds -rotate -9 -out_image ../../findclouds/output/test.png ../../findclouds/sample/20180529235500_12.jpg
 ./as_ntu_find_clouds -rotate 10.3 -region 55.5 -rb 0.7 -gb 0.75 ../../findclouds/sample/20180529235500_12.jpg
 ./as_ntu_find_clouds -ignore_sun -out_image abc.png ../../findclouds/sample/20180529235500_12.jpg
+```
